@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: pip install pytest
 
+      - name: Run generate.py
+        run: python generate.py
+
       - name: Run csvtojson.py
         run: python csvtojson.py
 
