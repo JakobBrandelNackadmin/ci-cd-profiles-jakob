@@ -1,5 +1,7 @@
 # CI/CD Profiles Generator 🚀
 
+![PIPELINE](https://github.com/JakobBrandelNackadmin/ci-cd-profiles-jakob/actions/workflows/main.yml/badge.svg)
+
 Detta projekt genererar kundprofiler och publicerar dem automatiskt på en publik webbplats via GitHub Pages – med full CI/CD pipeline.
 
 ## 🔧 Funktionalitet
