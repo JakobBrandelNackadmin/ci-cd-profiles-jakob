@@ -1,4 +1,4 @@
-name: Run tests and deploy
+name: PIPELINE
 
 on:
   push:
