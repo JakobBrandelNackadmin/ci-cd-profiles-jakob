@@ -1,6 +1,9 @@
 import csv
 import json
 import os
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from csvtojson import convert_csv_to_json
 
 def test_csv_has_12_columns():
