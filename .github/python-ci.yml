@@ -1,4 +1,423 @@
-name: PIPELINE
+Gå vidare till innehållet
+Chatthistorik
+
+Du sade:
+Inlämningsuppgift: Individuell
+
+
+Bakgrund
+CI/CD
+
+   
+Det finns en sajt som publicerar data (namn) på kunder som skall kontaktas inom kort…
+
+Det är en webbapplikation (HTML+Javascript) som läser data från en fil vid namn data.json och det är VI som producerar den filen
+
+
+
+ Vi ska produktionssätta denna sajt! Och bygga en PIPELINE (vg) för Datakontroll
+
+
+UPPGIFTEN
+
+G-krav
+
+- utgå från https://github.com/FrederickWennborg/pyhtoncreateprofiles-main
+-skapa ett eget repository som PUBLIC (måste för att GitHub Pages ska funka)
+- skapa ett enhetstest som alltid ”funkar”
+- skapa en Github action PIPELINE
+- den ska köra enhetstest och BRYTA ifall testet inte går bra (verifiera i en deployment/commit genom att göra ett test som FAILAR)
+- den ska produktionssätta en Github Pages site så sajten ovan funkar!
+
+
+VG-krav
+
+- Du har arbetat i brancher med relevanta commits. Egen branch för tester, pipeline osv.                        - Brancher är mergade till main.
+- Skapa en csvtojson.py som gör om profiles1.csv till en JSON fil
+- Skapa tester som:
+●	verifierar att CSV-filen innehåller 12 kolumner
+●	verifierar att CSV-filen innehåller 900+ rader
+●	verifierar att JSON-filen innehåller alla properties den ska
+●	verifierar att JSON-filen innehåller 900+ rader
+- I din pipeline ska du:
+●	köra generate.py
+●	köra csvtojson.py
+●	köra testerna
+●	deploy index.html + script.js + data.json till Github Pages
+
+
+Inlämning sker via länk till ditt GitHub repository i Studentportalen. 
+
+Betyg
+
+Det går att få G, VG eller IG på uppgiften. För att få G på inlämningsuppgiften ska alla krav märkta med G vara uppfyllda. För att få VG på inlämningsuppgiften ska alla krav märkta med G och VG vara uppfyllda. 
+
+Fusk
+
+Uppgiften ska lösas individuellt. Det är inte tillåtet att plagiera (skriva av) någon annans kod. All kod som används ska kunna förklaras. Muntliga avstämningar kan förekomma efter inlämning.
+
+
+
+
+
+
+ChatGPT sade:
+Här är en checklista och handlingsplan för hur du kan lösa inlämningsuppgiften steg för steg, inklusive både G-krav och VG-krav.
+
+✅ Del 1 – Grundkrav för G
+🔹 1. Skapa ett eget GitHub-repository
+Forka eller kopiera projektet:
+https://github.com/FrederickWennborg/pyhtoncreateprofiles-main
+
+Skapa ett nytt public repository med ett eget namn (t.ex. ci-cd-profiles-jakob)
+
+Ladda upp koden från originalprojektet
+
+🔹 2. Lägg till ett enhetstest som alltid funkar
+Skapa en fil: test_dummy.py
+
+def test_dummy():
+    assert True
+🔹 3. Skapa en GitHub Actions pipeline
+Skapa .github/workflows/main.yml:
+
+name: Run Tests and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install pytest
+
+      - name: Run tests
+        run: pytest
+Testa att lägga till ett test som medvetet FAILAR för att se att pipeline bryts
+
+🔹 4. Publicera sajten med GitHub Pages
+Placera index.html, script.js, data.json i en mapp docs/
+
+Gå till Repo Settings > Pages, välj "Deploy from branch" och mapp docs/
+
+Kontrollera att sidan funkar live
+
+✅ Del 2 – VG-krav
+🔹 5. Arbeta i brancher
+Skapa brancher:
+
+test-branch → testkod
+
+pipeline-branch → GitHub Actions
+
+json-conversion → csvtojson.py
+
+Mergas till main med tydliga commit-meddelanden
+
+🔹 6. csvtojson.py
+Skapa csvtojson.py:
+
+import csv
+import json
+
+def convert_csv_to_json(csv_file='profiles1.csv', json_file='data.json'):
+    with open(csv_file, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        data = list(reader)
+
+    with open(json_file, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+if __name__ == "__main__":
+    convert_csv_to_json()
+🔹 7. Tester för csvtojson
+Skapa test_csvtojson.py:
+
+import csv
+import json
+import os
+from csvtojson import convert_csv_to_json
+
+def test_csv_column_count():
+    with open('profiles1.csv', newline='', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        headers = next(reader)
+        assert len(headers) == 12
+
+def test_csv_row_count():
+    with open('profiles1.csv', newline='', encoding='utf-8') as f:
+        reader = list(csv.reader(f))
+        assert len(reader) > 900  # Including header
+
+def test_json_properties_and_row_count():
+    convert_csv_to_json()
+    with open('data.json', encoding='utf-8') as f:
+        data = json.load(f)
+        assert len(data) > 900
+        sample = data[0]
+        assert len(sample) == 12
+🔹 8. Uppdatera pipeline så allt körs automatiskt
+- name: Run generate.py
+  run: python generate.py
+
+- name: Convert CSV to JSON
+  run: python csvtojson.py
+
+- name: Run all tests
+  run: pytest
+
+- name: Deploy to GitHub Pages
+  uses: peaceiris/actions-gh-pages@v3
+  with:
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+    publish_dir: ./docs
+📤 Inlämning
+Lämna in länk till ditt GitHub-repo via Studentportalen
+
+Säkerställ att:
+
+Pipelines syns under “Actions”
+
+Sajten fungerar via GitHub Pages
+
+All kod är din egen och förstås av dig
+
+Vill du att jag hjälper dig sätta upp mappstruktur, testmallar eller GitHub Actions-filer som du bara kan klistra in?
+
+Du sade:
+Hur kopierar jag
+
+🔹 1. Skapa ett eget GitHub-repository
+Forka eller kopiera projektet:
+https://github.com/FrederickWennborg/pyhtoncreateprofiles-main
+ChatGPT sade:
+För att kopiera (forka eller klona) projektet https://github.com/FrederickWennborg/pyhtoncreateprofiles-main till ett eget publikt GitHub-repository följer du dessa steg:
+
+✅ Alternativ A: Forka direkt i GitHub (rekommenderas)
+Gå till:
+👉 https://github.com/FrederickWennborg/pyhtoncreateprofiles-main
+
+Klicka på knappen “Fork” i övre högra hörnet.
+
+Välj “Create a new fork”
+
+Ge ditt repo ett namn, t.ex. ci-cd-profiles-[ditt-namn]
+
+Se till att det är Public
+
+Klicka Create Fork
+
+Nu har du en egen kopia i din GitHub-profil. Exempel:
+https://github.com/ditt-användarnamn/ci-cd-profiles-[ditt-namn]
+
+På din nya kopia, klicka Code > HTTPS och kopiera länken.
+
+Öppna VS Code eller terminal och kör:
+
+git clone https://github.com/ditt-användarnamn/ci-cd-profiles-[ditt-namn].git
+cd ci-cd-profiles-[ditt-namn]
+✅ Alternativ B: Klona utan forking (manuell kopia)
+Om du inte vill forka utan bara klona och ladda upp själv:
+
+Gå till originalprojektet:
+👉 https://github.com/FrederickWennborg/pyhtoncreateprofiles-main
+
+Klicka Code > HTTPS → Kopiera länken.
+
+Kör i terminal:
+
+git clone https://github.com/FrederickWennborg/pyhtoncreateprofiles-main.git
+cd pyhtoncreateprofiles-main
+Skapa ett nytt repository på din egen GitHub-profil via
+👉 https://github.com/new
+
+Namn: t.ex. ci-cd-profiles-[ditt-namn]
+
+Välj Public
+
+Koppla din lokala kod till det nya repot:
+
+git remote remove origin
+git remote add origin https://github.com/ditt-användarnamn/ci-cd-profiles-[ditt-namn].git
+git push -u origin main
+Vill du att jag genererar dessa Git-kommandon med ditt GitHub-användarnamn automatiskt?
+
+Du sade:
+hur ser jag forker in vs code?
+ChatGPT sade:
+Bra fråga! När du forkar ett projekt på GitHub, skapas en kopia i din egen GitHub-profil. För att se och arbeta med forken i VS Code, gör du så här:
+
+✅ Steg-för-steg: Öppna en fork i VS Code
+🔹 1. Forka projektet på GitHub
+Gå till:
+👉 https://github.com/FrederickWennborg/pyhtoncreateprofiles-main
+Klicka på “Fork” uppe till höger och skapa en kopia till ditt eget konto.
+
+🔹 2. Klona din fork till VS Code
+Gå till din egen fork på GitHub, exempel:
+https://github.com/ditt-namn/pyhtoncreateprofiles-main
+
+Klicka på den gröna knappen "Code" → "HTTPS"
+Kopiera länken, t.ex.
+https://github.com/jakobbrandel/pyhtoncreateprofiles-main.git
+
+Öppna VS Code och tryck Ctrl + Shift + P (eller Cmd + Shift + P på Mac)
+Skriv Git: Clone och välj det alternativet.
+
+Klistra in länken → Välj en mapp → Vänta tills kloningen är klar.
+
+När VS Code frågar: "Öppna projektet?", klicka "Öppna".
+
+🔹 3. Verifiera att du jobbar med forken
+I terminalen (eller via git remote -v) kan du köra:
+
+git remote -v
+Du ska då se något i stil med:
+
+origin  https://github.com/jakobbrandel/pyhtoncreateprofiles-main.git (fetch)
+origin  https://github.com/jakobbrandel/pyhtoncreateprofiles-main.git (push)
+Det bekräftar att du jobbar med din fork, inte originalet.
+
+Vill du att jag hjälper dig lägga till brancher, tester eller pipeline direkt i din forkade kod?
+
+Du sade:
+ok jag har nu 
+- clonat repository
+- fått i clonen i min github
+- öppan upp forken i vs code
+ChatGPT sade:
+Perfekt! 💪 Då är du helt rätt på banan.
+
+Här är nästa steg för att uppfylla G-kraven i inlämningsuppgiften – punkt för punkt.
+
+✅ Nästa steg (för G-betyg)
+🔹 1. Skapa ett enhetstest som alltid funkar
+Skapa en ny mapp eller filstruktur om det inte redan finns:
+
+📁 tests/test_dummy.py
+
+Innehåll i test_dummy.py:
+
+def test_always_passes():
+    assert True
+Testa att det fungerar:
+
+pip install pytest
+pytest
+🔹 2. Lägg till GitHub Actions pipeline
+Skapa mapp:
+
+.github/workflows/
+Skapa fil:
+📄 .github/workflows/python-ci.yml
+
+name: Test and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: pip install pytest
+
+    - name: Run tests
+      run: pytest
+Push ändringarna:
+
+git add .
+git commit -m "Add GitHub Actions for test pipeline"
+git push origin main
+✅ Gå till din repo-sida på GitHub → fliken "Actions" → Du ska se pipelinen köra!
+
+🔹 3. Testa att pipelinen bryts om testet failar
+Ändra testet temporärt:
+
+def test_always_fails():
+    assert False
+Push ändringen:
+
+git commit -am "Test failing pipeline"
+git push
+Verifiera i GitHub att pipelinen misslyckas.
+
+Ändra tillbaka till assert True och pusha igen.
+
+🔹 4. Publicera webbappen via GitHub Pages
+Skapa en mapp docs/ i rotmappen.
+
+Lägg in där:
+
+index.html
+
+script.js
+
+data.json
+
+Gå till repo Settings > Pages
+
+Source: Deploy from branch: main
+
+Folder: /docs
+
+Spara
+
+Inom någon minut får du en länk, t.ex.
+https://ditt-namn.github.io/ditt-repo/
+→ Webbappen ska fungera!
+
+Vill du att jag hjälper dig sätta upp csvtojson.py, tester och pipeline för VG-kraven också?
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+Perfekt, Jakob! 👏 Du har:
+
+✅ Skapat ett fungerande enhetstest (test_dummy.py)
+
+✅ Kört pytest i terminalen och testet passerade
+
+Nu är det dags för nästa stora steg:
+
+✅ Nästa steg – Lägg till GitHub Actions för CI/CD
+🔹 1. Skapa GitHub Actions-fil
+📁 Skapa följande mappstruktur i projektet (om den inte redan finns):
+
+.github/workflows/
+📄 Inuti den, skapa en ny fil:
+.github/workflows/python-ci.yml
+
+Klistra in detta innehåll:
+
+name: Run tests and deploy
 
 on:
   push:
@@ -24,3 +443,887 @@ jobs:
 
     - name: Run tests
       run: pytest
+🔹 2. Lägg till, commit och pusha
+Öppna terminalen i VS Code och kör:
+
+git add .github/workflows/python-ci.yml
+git commit -m "Add GitHub Actions pipeline for test automation"
+git push origin main
+🔹 3. Verifiera i GitHub
+Gå till ditt repo på GitHub → klicka på fliken "Actions".
+Du ska se ett workflow starta automatiskt (inom 30 sekunder).
+👉 Om testet lyckas ser du ✅ "1 passed"
+
+Vill du nu gå vidare med att:
+
+testa att pipelinen bryts med ett failande test?
+
+lägga till GitHub Pages?
+
+börja bygga csvtojson.py och testerna för VG?
+
+Du sade:
+PS C:\Users\jakob\OneDrive - Nackademin AB\6. devOps\Devops with GitHub Repository\ci-cd-profiles-jakob> .github/workflows/
+.github/workflows/ : The term '.github/workflows/' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, 
+verify that the path is correct and try again.
+At line:1 char:1
++ .github/workflows/
++ ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (.github/workflows/:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS C:\Users\jakob\OneDrive - Nackademin AB\6. devOps\Devops with GitHub Repository\ci-cd-profiles-jakob>
+ChatGPT sade:
+Det där felet uppstår för att du försökte köra en mappväg som om det vore ett kommando i PowerShell – och det går inte.
+
+Men det är lätt att lösa! 💡
+
+✅ Så här skapar du .github/workflows/ korrekt i VS Code:
+🔹 Alternativ 1 – Använd Utforskaren i VS Code (enklast)
+I Explorer-fönstret i VS Code (vänster sida):
+
+Högerklicka på projektroten → New Folder → skriv:
+
+.github
+Högerklicka på .github → New Folder → skriv:
+
+workflows
+Högerklicka på workflows → New File → skriv:
+
+python-ci.yml
+Klistra in detta innehåll i python-ci.yml:
+
+name: Run tests and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: pip install pytest
+
+    - name: Run tests
+      run: pytest
+Spara filen → öppna terminalen i VS Code:
+
+git add .
+git commit -m "Add CI pipeline"
+git push origin main
+Vill du att jag direkt hjälper dig lägga in GitHub Pages-deployment också?
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+Perfekt – du har nu korrekt skapat .github/workflows/-mappen i VS Code! ✅
+
+Nästa steg är att lägga till själva GitHub Actions workflow-filen.
+
+✅ Lägg till GitHub Actions-fil
+🔹 1. Högerklicka på .github/workflows
+→ välj New File
+→ döp filen till exakt:
+
+python-ci.yml
+🔹 2. Klistra in detta innehåll:
+name: Run tests and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: pip install pytest
+
+    - name: Run tests
+      run: pytest
+Spara filen (Ctrl + S eller Cmd + S på Mac).
+
+🔹 3. Lägg till, committa och pusha:
+Kör i terminalen:
+
+git add .
+git commit -m "Add CI workflow with pytest"
+git push origin main
+🔹 4. Verifiera på GitHub
+Gå till din repo på GitHub
+
+Klicka på fliken Actions
+
+Du ska se att pipelinen körs automatiskt 🚀
+
+Vill du nu:
+
+testa att pipelinen bryts med ett failande test?
+
+gå vidare till GitHub Pages?
+
+eller bygga csvtojson.py och tester för VG?
+
+Du sade:
+
+PS C:\Users\jakob\OneDrive - Nackademin AB\6. devOps\Devops with GitHub Repository\ci-cd-profiles-jakob> git add .
+PS C:\Users\jakob\OneDrive - Nackademin AB\6. devOps\Devops with GitHub Repository\ci-cd-profiles-jakob> git commit -m "Add CI workflow with pytest"
+Author identity unknown
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+
+to set your account's default identity.
+Omit --global to set the identity only in this repository.
+
+fatal: unable to auto-detect email address (got 'jakob@LAPTOP-PLM2D2CG.(none)')
+PS C:\Users\jakob\OneDrive - Nackademin AB\6. devOps\Devops with GitHub Repository\ci-cd-profiles-jakob> git push origin main
+Everything up-to-date
+PS C:\Users\jakob\OneDrive - Nackademin AB\6. devOps\Devops with GitHub Repository\ci-cd-profiles-jakob> 
+ChatGPT sade:
+Du är nästan klar – problemet just nu är att Git inte vet vem du är (ditt namn och mejl) så den kan inte skapa en commit.
+
+✅ Så här löser du det:
+Kör följande två kommandon i terminalen (byt ut med dina riktiga uppgifter):
+
+git config --global user.name "Jakob Brandel"
+git config --global user.email "dinmejl@example.com"
+👉 Om du inte vill sätta det globalt (för alla projekt), kan du köra utan --global så att det bara gäller det här projektet.
+
+🔄 Efter det, kör om:
+git commit -m "Add CI workflow with pytest"
+git push origin main
+💡 Du kan kontrollera att det sparats korrekt med:
+
+git config --global --list
+Vill du att jag visar hur du nu testar att pipelinen fungerar (eller bryts om ett test failar)?
+
+Du sade:
+PS C:\Users\jakob\OneDrive - Nackademin AB\6. devOps\Devops with GitHub Repository\ci-cd-profiles-jakob> git config --global user.name "Jakob Brandel"
+>> git config --global user.email "jakob.brandel@yh.nackademin.se"
+PS C:\Users\jakob\OneDrive - Nackademin AB\6. devOps\Devops with GitHub Repository\ci-cd-profiles-jakob> git config --global user.email "jakob.brandel@yh.nackademin.se"
+PS C:\Users\jakob\OneDrive - Nackademin AB\6. devOps\Devops with GitHub Repository\ci-cd-profiles-jakob> git commit -m "Add CI workflow with pytest"
+>> git push origin main
+[main 67cb29c] Add CI workflow with pytest
+ 3 files changed, 28 insertions(+)
+ create mode 100644 .github/python-ci.yml
+ create mode 100644 tests/__pycache__/test_dummy.cpython-312-pytest-8.3.5.pyc
+ create mode 100644 tests/test_dummy.py
+Enumerating objects: 10, done.
+Counting objects: 100% (10/10), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (7/7), done.
+Writing objects: 100% (8/8), 1.29 KiB | 660.00 KiB/s, done.
+Total 8 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/JakobBrandelNackadmin/ci-cd-profiles-jakob.git
+   07a4954..67cb29c  main -> main
+PS C:\Users\jakob\OneDrive - Nackademin AB\6. devOps\Devops with GitHub Repository\ci-cd-profiles-jakob>
+ChatGPT sade:
+🎉 Snyggt jobbat, Jakob! Allt gick igenom korrekt:
+
+✅ Git-konfiguration satt
+
+✅ Commit skapad
+
+✅ Push till GitHub lyckades
+
+✅ Actions-filen (python-ci.yml) är nu uppladdad
+
+📡 Nu: Kontrollera att GitHub Actions körs
+Gå till ditt repo i webbläsaren:
+👉 https://github.com/JakobBrandelNackadmin/ci-cd-profiles-jakob
+
+Klicka på fliken “Actions”
+
+Du bör se att en workflow har startat:
+
+Namn: “Run tests and deploy”
+
+Status: In progress eller ✔️ success
+
+✅ Vill du testa att pipelinen bryts?
+Du kan prova det så här:
+
+🔹 1. Ändra test_dummy.py temporärt:
+def test_always_fails():
+    assert False
+🔹 2. Spara, commit och pusha:
+git add tests/test_dummy.py
+git commit -m "Intentional fail to test CI"
+git push
+➡️ Gå till GitHub → flik Actions → du bör se att pipelinen failar.
+
+Vill du fortsätta med:
+
+GitHub Pages publicering?
+
+csvtojson.py och tester för VG?
+
+Du sade:
+Uppladdad bild
+Jag ser inte fliken actions
+ChatGPT sade:
+Bra fråga – om du inte ser "Actions"-fliken i GitHub finns det några vanliga orsaker, särskilt i utbildningsmiljöer eller nya konton.
+
+🔍 Kontrollera varför "Actions" inte syns
+✅ 1. Öppna GitHub-repot i webbläsaren
+Gå till din repo på:
+👉 https://github.com/JakobBrandelNackadmin/ci-cd-profiles-jakob
+
+Om allt är rätt konfigurerat ska du se flikar högst upp:
+
+<> Code  📦 Issues  🔄 Pull requests  📊 Actions  📁 Projects ...
+🚫 Om "Actions" INTE syns:
+Är du inloggad på GitHub med rätt konto?
+
+Har du aktiverat GitHub Actions i repo-inställningarna?
+
+✅ Aktivera GitHub Actions manuellt
+Gå till ditt repo på GitHub
+
+Klicka på Settings (högst upp)
+
+I sidomenyn, gå till "Actions"
+
+Under General, säkerställ att:
+
+"Allow all actions and reusable workflows" är markerad
+
+Om du ser en knapp som heter Enable Actions – klicka den
+
+🧪 Alternativt sätt: Besök Actions direkt via URL
+Testa denna direktlänk till Actions-sidan:
+👉 https://github.com/JakobBrandelNackadmin/ci-cd-profiles-jakob/actions
+
+Vill du att jag visar hur du publicerar din webbapp med GitHub Pages som nästa steg?
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+Perfekt! 🟢 Du har nu hamnat på exakt rätt plats.
+
+GitHub visar detta meddelande eftersom ditt repository är en fork och GitHub Actions är inaktiverat som standard för säkerhetsskäl.
+
+✅ Så här aktiverar du GitHub Actions
+Klicka på den gröna knappen:
+
+👉 I understand my workflows, go ahead and enable them
+När du klickat:
+
+GitHub kommer aktivera Actions direkt
+
+Den senaste pushen (Add CI workflow with pytest) kommer automatiskt att trigga din workflow
+
+Efter bara några sekunder bör du se pipelinen köras under fliken "Actions"
+
+Vill du:
+
+testa att pipelinen bryts med ett failande test?
+
+fortsätta till GitHub Pages-publicering?
+
+börja jobba på VG-kraven (csv → JSON, tester, deploy)?
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+Tack för bilden – allt ser helt rätt ut! ✅ Actions är nu aktiverat men eftersom du inte har gjort någon ny push ännu efter att du aktiverade det, har workflow:et inte körts än.
+
+🚀 Så får du igång din första GitHub Actions-körning
+🔹 Alternativ 1 – Gör en minimal ändring och pusha
+Öppna t.ex. test_dummy.py
+
+Lägg till en tom rad, eller ändra kommentaren
+
+Spara filen
+
+I terminalen, kör:
+
+git add tests/test_dummy.py
+git commit -m "Trigger GitHub Actions for the first time"
+git push origin main
+Detta kommer att trigga workflow:et direkt!
+
+🔹 Alternativ 2 – Skapa en issue och koppla PR (om du hellre vill testa pull_request)
+Men push är enklast just nu.
+
+✅ När du pushar, gå till fliken Actions igen, så ska du inom 10–30 sekunder se din workflow starta och köra pytest.
+
+Vill du:
+
+testa ett failande test sen?
+
+gå vidare till GitHub Pages för att publicera sajten?
+
+börja jobba på csvtojson.py för VG?
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+Perfekt Jakob — du har nu triggat GitHub Actions för första gången! 🟢
+Dock visar ikonen ❌ att workflown misslyckades, så låt oss snabbt felsöka det.
+
+🔍 Så ser du exakt vad som gick fel
+Klicka på den röda raden:
+“Trigger GitHub Actions for the first time”
+
+Klicka sedan på själva steget som misslyckades (t.ex. "Run pytest").
+
+Läs loggen som visas — det kommer ge oss exakt felmeddelande (t.ex. saknad fil, beroendeproblem, test failat etc).
+
+💡 Vanliga fel just nu kan vara:
+Fel sökväg till testfilen (tests/test_dummy.py)
+
+pytest hittar inga tester (fel namn på testfunktionen eller testfilen)
+
+Python-version saknar beroenden
+
+Felaktigt indragen YAML-fil
+
+👇 Vill du att du klistrar in felmeddelandet du får under "Run tests"?
+Eller ta en ny skärmbild där vi ser exakt vilket steg som är rött, så hjälper jag dig lösa det direkt!
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+Tack för skärmbilden! 🔍 Felet är tydligt:
+
+HttpError: Not Found – Get Pages site failed
+GitHub försöker köra GitHub Pages-deploy via Actions – men du har ännu inte aktiverat GitHub Pages i repo-inställningarna.
+
+✅ Så löser du felet direkt
+🔹 1. Aktivera GitHub Pages i repo-inställningarna
+Gå till:
+👉 https://github.com/JakobBrandelNackadmin/ci-cd-profiles-jakob/settings/pages
+
+Under "Source", gör så här:
+
+Välj: Deploy from a branch
+
+Välj branch: main
+
+Välj mapp: docs/ (om din index.html ligger där)
+
+Klicka Save
+
+⚠️ Om du inte har någon docs/-mapp ännu:
+
+Skapa den och flytta index.html, script.js och data.json dit.
+
+Eller så ändrar vi GitHub Actions-scriptet att deploya från en annan mapp.
+
+🔹 2. (Valfritt) Ta bort eller pausa Pages-deployment i din workflow
+Om du bara ville testa test-pipelinen just nu – ta bort Pages-steget från .yml-filen så du slipper felet.
+
+Vill du:
+
+att jag uppdaterar din python-ci.yml till en fungerande pipeline med både test och Pages-deploy?
+
+eller vill du först göra klart csvtojson.py och testerna för VG?
+
+Du sade:
+jag har aktiverat github åages vad gör jag ne
+ChatGPT sade:
+Toppen Jakob! ✅ Nu när du har aktiverat GitHub Pages, är du redo att:
+
+🚀 Alternativ 1: Deploya sajten manuellt via GitHub Pages
+Om du bara vill visa HTML-sajten (inte via Actions ännu):
+
+Skapa en mapp docs/ i VS Code om den inte finns:
+
+/docs/
+├── index.html
+├── script.js
+└── data.json
+Flytta dina filer dit.
+
+git add . && git commit -m "Move site to docs for GitHub Pages" && git push
+
+Gå till https://jakobbrandelnackadmin.github.io/ci-cd-profiles-jakob/ efter ~1 minut
+
+🚀 Alternativ 2: Deploya via GitHub Actions automatiskt (CI/CD)
+Vill du ha test + deploy i samma pipeline? Använd denna .github/workflows/main.yml:
+
+name: Test and Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: pip install pytest
+
+    - name: Run Tests
+      run: pytest
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+➡️ Spara, committa och pusha:
+
+git add .
+git commit -m "Add test + Pages deploy pipeline"
+git push
+Vill du att jag hjälper dig skapa csvtojson.py och tillhörande tester för att uppfylla VG-kraven?
+
+Du sade:
+Uppladdad bild
+hur skapar jag docs?
+
+ChatGPT sade:
+Perfekt fråga! Här är hur du enkelt skapar en docs/-mapp i VS Code och förbereder den för GitHub Pages:
+
+🛠️ Steg-för-steg: Skapa docs/-mappen
+🔹 1. I VS Code:
+Högerklicka i det tomma utrymmet i filutforskaren (vänstersidan)
+
+Välj "New Folder"
+
+Skriv exakt:
+
+docs
+🔹 2. Flytta filerna till docs/
+Flytta in följande filer till docs/ (du kan dra dem i VS Code):
+
+docs/
+├── index.html
+├── script.js
+├── data.json
+🔹 3. Kontrollera att strukturen nu ser ut så här:
+ci-cd-profiles-jakob/
+├── docs/
+│   ├── index.html
+│   ├── script.js
+│   └── data.json
+├── .github/
+├── tests/
+├── profiles1.csv
+├── csvtojson.py (kommer sen)
+...
+🔹 4. Lägg till, committa och pusha
+I terminalen:
+
+git add docs
+git commit -m "Add docs folder for GitHub Pages"
+git push
+✅ Nu kommer GitHub Pages automatiskt att visa innehållet i docs/
+→ Du kan se sajten på:
+https://jakobbrandelnackadmin.github.io/ci-cd-profiles-jakob/
+
+Vill du nu gå vidare med:
+
+csvtojson.py som konverterar profiles1.csv till data.json?
+
+Tester för VG-krav?
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+Tack för skärmdumpen! Den visar att GitHub Pages är aktiverat, men att sajten inte har publicerats ännu eller att docs/-mappen inte är korrekt inställd. Låt oss lösa det direkt! 🔧
+
+✅ Checklista för att GitHub Pages ska fungera
+🔹 1. Kontrollera GitHub Pages-inställningen
+Gå till:
+👉 https://github.com/JakobBrandelNackadmin/ci-cd-profiles-jakob/settings/pages
+
+Kontrollera att följande är valt:
+
+Source: Deploy from a branch
+
+Branch: main
+
+Folder: /docs
+
+✔ Klicka Save om du inte redan gjort det.
+
+🔹 2. Se till att docs/ innehåller rätt filer
+I mappen docs/ måste följande finnas:
+
+docs/
+├── index.html
+├── script.js
+└── data.json
+Om du inte ser mappen i GitHub, har du kanske glömt att pusha den? Då kör du:
+
+git add docs
+git commit -m "Add docs folder for GitHub Pages"
+git push origin main
+🔹 3. Vänta 30–60 sekunder
+Det kan ta upp till en minut innan GitHub Pages blir tillgängligt första gången.
+
+🔹 4. Gå till sidan igen:
+👉 https://jakobbrandelnackadmin.github.io/ci-cd-profiles-jakob/
+
+Vill du att jag snabbt visar hur du skapar csvtojson.py som genererar data.json automatiskt från profiles1.csv också? Det är en del av VG-kraven.
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+Toppen, Jakob! 🙌
+
+Nu är allt korrekt inställt för GitHub Pages – du har:
+
+✅ En docs/-mapp med index.html, data.json och script.js
+
+✅ Vald branch main och mapp /docs i inställningarna
+
+✅ Sajten är nyligen deployad och länken är aktiv:
+👉 https://jakobbrandelnackadmin.github.io/ci-cd-profiles-jakob/
+
+🕵️ Om du fortfarande får 404:
+Det kan ta upp till 2 minuter första gången innan sidan blir tillgänglig.
+
+Testa:
+
+Klicka på “Visit site”-knappen i GitHub Pages-inställningen
+
+Tryck Ctrl + F5 för att tvinga webbläsaren att ladda om utan cache
+
+Vill du nu gå vidare och få hjälp att:
+
+📌 1. Skapa csvtojson.py
+För att omvandla profiles1.csv → docs/data.json
+
+📌 2. Skapa tester för:
+att CSV-filen har 12 kolumner
+
+att den har 900+ rader
+
+att JSON-filen har rätt struktur och antal rader
+
+Säg bara "ja", så hjälper jag dig direkt med VG-delen ✅
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+💥 Fantastiskt Jakob! Sajten funkar nu perfekt och läser in data.json – GitHub Pages + HTML + JavaScript = ✅
+Nu är du klar med alla G-krav!
+
+🚀 Nu tar vi VG: Skapa csvtojson.py
+Det här scriptet ska läsa profiles1.csv och skapa docs/data.json.
+
+📄 Skapa csvtojson.py i projektroten:
+import csv
+import json
+
+def convert_csv_to_json(csv_file='profiles1.csv', json_file='docs/data.json'):
+    with open(csv_file, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+
+    with open(json_file, 'w', encoding='utf-8') as f:
+        json.dump(rows, f, indent=2, ensure_ascii=False)
+
+if __name__ == '__main__':
+    convert_csv_to_json()
+🧪 Lägg till tester – skapar test_csvtojson.py under tests/
+import csv
+import json
+import os
+from csvtojson import convert_csv_to_json
+
+def test_csv_has_12_columns():
+    with open('profiles1.csv', newline='', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        header = next(reader)
+        assert len(header) == 12
+
+def test_csv_has_900_plus_rows():
+    with open('profiles1.csv', newline='', encoding='utf-8') as f:
+        reader = list(csv.reader(f))
+        assert len(reader) > 900  # includes header row
+
+def test_json_has_correct_properties_and_rows():
+    convert_csv_to_json()
+    with open('docs/data.json', encoding='utf-8') as f:
+        data = json.load(f)
+        assert len(data) > 900
+        assert isinstance(data[0], dict)
+        assert len(data[0]) == 12
+🔁 Uppdatera din GitHub Actions-workflow (main.yml eller python-ci.yml):
+Lägg till dessa steg innan deployment:
+
+    - name: Run generate.py
+      run: python generate.py
+
+    - name: Convert CSV to JSON
+      run: python csvtojson.py
+➡️ Då kör pipelinen:
+
+generate.py
+
+csvtojson.py
+
+pytest
+
+Deployar till docs/
+
+Vill du att jag kombinerar en fullständig .yml-fil åt dig med allt detta inlagt?
+
+Du sade:
+Uppladdad bild
+Så här ser mina actions ut. Enligt kravspec skulle min action heta PIPELINE?
+
+ChatGPT sade:
+Bra spanat! 👀
+
+I kravspecen står det att du ska:
+
+✅ "Skapa en GitHub Action PIPELINE"
+
+Det betyder att du ska ha en egen GitHub Actions workflow som du namnger tydligt som exempelvis "PIPELINE" eller "CI/CD Pipeline" – och inte bara använda GitHub Pages standard-workflow pages-build-deployment.
+
+✅ Så här döper du din egen action till “PIPELINE”
+Öppna din workflow-fil
+T.ex.: .github/workflows/python-ci.yml
+
+Högst upp, byt ut name: till något som tydligt visar att det är din pipeline:
+
+name: PIPELINE
+Hela filen kan t.ex. se ut så här:
+
+name: PIPELINE
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: pip install pytest
+
+    - name: Run generate script
+      run: python generate.py
+
+    - name: Convert CSV to JSON
+      run: python csvtojson.py
+
+    - name: Run tests
+      run: pytest
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+🔄 Därefter:
+git add .github/workflows/python-ci.yml
+git commit -m "Rename workflow to PIPELINE"
+git push
+Nu kommer du se en ny körning under fliken Actions med titeln:
+👉 PIPELINE
+
+Vill du att jag genererar en komplett version av din csvtojson.py, testfil och uppdaterad workflow med rätt namn åt dig?
+
+Du sade:
+jag vill göra push i vs code gui och inte via bash
+ChatGPT sade:
+Toppen! 💻 Du kan absolut göra git push i VS Code GUI utan att använda terminalen. Här är en steg-för-steg-guide direkt i VS Code:
+
+✅ Så gör du commit och push i VS Code GUI
+🔹 1. Öppna Source Control-vyn (Version Control)
+Klicka på ikon med tre grenar och en cirkel i vänstermenyn (Source Control)
+eller tryck:
+
+Ctrl + Shift + G
+🔹 2. Skriv in commit-meddelande
+Överst ser du ett inmatningsfält:
+✏️ Skriv t.ex.:
+
+Rename workflow to PIPELINE
+🔹 3. Klicka på ✓ (Commit)
+Klicka på bocken ✓ ovanför meddelandet
+
+Om det är första gången du committar lokalt: välj "Commit to main"
+
+🔹 4. Klicka på … (tre prickar) → Push
+Klicka på de tre prickarna längst upp i Source Control-vyn
+
+Välj: Push
+
+✅ Du ser status längst ner i blå listen:
+
+"Pushing to origin/main…"
+och sedan "Push completed" när det är klart
+
+Vill du att jag hjälper dig kolla så att .yml-filen är helt korrekt uppbyggd innan du pushar den?
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+🔥 Bra jobbat Jakob – nu ser vi att din workflow heter precis som det ska:
+✅ PIPELINE
+
+Det betyder att du nu uppfyller kravet om en egen CI/CD-pipeline med rätt namn enligt specifikationen.
+
+🟡 Nästa steg (om du siktar på VG):
+Vill du nu att jag hjälper dig:
+
+✅ Färdigställa csvtojson.py
+
+✅ Lägga till testfilen test_csvtojson.py med 3–4 krav
+
+✅ Uppdatera din PIPELINE så allt körs automatiskt?
+
+Svarar du "ja", genererar jag all kod och pushredo .yml åt dig direkt.
+
+Du sade:
+varför är det en röd x "build" tecken. Beryder det error?
+ChatGPT sade:
+Ja, Jakob — den röda ❌ vid "build" betyder att workflown misslyckades, alltså att något steg i din GitHub Actions-pipeline (PIPELINE) gick fel. Men det är lätt att ta reda på varför. 👇
+
+🔍 Så felsöker du röd "❌ build"
+Klicka på raden med texten
+👉 “Rename workflow to PIPELINE”
+
+Du ser då:
+
+En ruta för build med röd ikon
+
+Klicka på build för att visa detaljerna
+
+Under stegen (Checkout, Setup Python, Run pytest osv) kommer det finnas en röd ikon på det steg som misslyckades.
+
+Klicka på det steget, t.ex. Run tests, för att läsa exakt felmeddelande
+
+💡 Vanliga fel:
+Test som failar (t.ex. assert False)
+
+Saknad fil (t.ex. csvtojson.py finns inte än)
+
+Fel i YAML-filen (indrag, syntax)
+
+Fel sökväg till docs/ i deploy-steget
+
+🎯 Vill du att jag felsöker åt dig?
+Klicka in dig på build → det röda steget → och ta en ny skärmbild, så analyserar jag exakt vad som gick fel och hur vi löser det.
+
+Du sade:
+Uppladdad bild
+ChatGPT sade:
+Tack för bilden – nu ser vi felet tydligt:
+
+❌ cp: cannot stat 'index.html': No such file or directory
+
+🛑 Problemet:
+Din workflow försöker kopiera index.html från rotmappen, men filen ligger i docs/.
+
+cp index.html dist/
+Detta kommando failar eftersom index.html inte finns i projektets rot – utan i docs/.
+
+✅ Lösning: Använd rätt publish_dir
+Eftersom du redan har alla HTML/JS/JSON-filer i docs/ och använder GitHub Pages från /docs, behöver du inte kopiera eller skapa någon dist-mapp alls.
+
+🔁 Uppdaterad korrekt workflow (PIPELINE) med test + deploy
+name: PIPELINE
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: pip install pytest
+
+    - name: Run generate.py
+      run: python generate.py
+
+    - name: Run csvtojson.py
+      run: python csvtojson.py
+
+    - name: Run tests
+      run: pytest
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+🚀 Nästa steg:
+Byt ut din .yml-fil mot den här
+
+Spara → commit → push via VS Code GUI
+
+Verifiera att din nya PIPELINE körs utan röd ikon
+
+Vill du att jag också hjälper dig med att generera färdiga:
+
+csvtojson.py
+
+test_csvtojson.py
+...?
+
+
+
+
+Ingen fil har valtsIngen fil har valts
+ChatGPT kan begå misstag. Kontrollera viktig information.
